@@ -1,0 +1,103 @@
+@model List<SidewalkUI.Models.Company>
+@{
+    ViewBag.Title = "Home";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="~/Content/chosen.css" rel="stylesheet" />
+<script src="~/Scripts/chosen.jquery.js"></script>
+<script type="text/javascript">
+    var AppURLSettings = AppURLSettings || {};
+    AppURLSettings.DataHandler = '@Url.Action("DataHandler", "Home")';
+    AppURLSettings.GetAffidavitByNo = '@Url.Action("GetAffidavitByNo", "Affidavit")';
+    $(document).ready(function () {
+
+        oTable = $('.datatable-sidewalk').DataTable({
+            initComplete: function () {
+
+                this.api().columns().every(function (colIdx) {
+                    var column = this;
+
+                    if (colIdx == 2) {
+                        var select = $('<select class="chosen-select" data-placeholder="Select" multiple></select>')
+                            .appendTo($("#filters").find("th").eq(column.index()))
+                            .on('change', function () {
+                                //var val = $.fn.dataTable.util.escapeRegex(
+                                //    $(this).val());
+                                var val = $(this).val();
+
+                                if (val != null) {
+                                    var search = val.join('|');
+                                    //column.search(val ? '^' + val + '$' : '', true, false).draw();
+                                    column.search(search, true, false).draw();
+                                }
+                                else {
+                                    column.search('', true, false).draw();
+                                }
+                            });
+
+                        column.data().unique().sort().each(function (d, j) {
+                            select.append('<option value="' + d + '">' + d + '</option>')
+                        });
+                        return;
+                    }
+
+                        input = $('<input type="text" />').appendTo($(column.header())).on('keyup change', function () {
+                            if (column.search() !== this.value) {
+                                column.search(this.value)
+                                    .draw();
+                            }
+                        });
+
+                    var searchTextBoxes = $('input', $('.filters th')[colIdx]);
+                    searchTextBoxes.on('click', function (e) {
+                        e.stopPropagation();
+                    });
+
+                });
+            }
+        });
+
+        $('.chosen-select').chosen();
+
+        $('.chosen-select').next().bind('click', function (e){
+            e.stopPropagation();
+        });
+
+});
+</script>
+<table id="myDataTable" class="display datatable-sidewalk">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Company name</th>
+            <th>Town</th>
+            <th>Date Created</th>
+        </tr>
+        <tr id="filters">
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.ID</td>
+                <td>@item.Name</td>
+                <td>@item.Town</td>
+                <td>@item.DateCreated</td>
+            </tr>
+        }
+
+    </tbody>
+    <tfoot>
+        <tr>
+            <th>ID</th>
+            <th>Company name</th>
+            <th>Town</th>
+            <th>Date Created</th>
+        </tr>
+    </tfoot>
+</table>
